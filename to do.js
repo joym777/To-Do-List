@@ -108,15 +108,6 @@ const clearAllBtn = document.createElement("button");
 clearAllBtn.textContent = "Clear All Tasks";
 clearAllBtn.className = "clear-btn";
 
-// Styling tip (optional): Add some spacing
-//clearAllBtn.style.marginTop = "15px";
-//clearAllBtn.style.padding = "8px 16px";
-//clearAllBtn.style.borderRadius = "5px";
-//clearAllBtn.style.border = "none";
-//clearAllBtn.style.backgroundColor = "#ff6666";
-//clearAllBtn.style.color = "#fff";
-//clearAllBtn.style.cursor = "pointer";
-
 // Add button below the task list
 taskList.insertAdjacentElement("afterend", clearAllBtn);
 
