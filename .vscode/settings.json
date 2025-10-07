@@ -1,0 +1,9 @@
+{
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.guides.bracketPairs": true,
+  "workbench.colorCustomizations": {
+  "editorBracketHighlight.foreground3" 
+  "editorBracketMatch.border"
+  "editorBracketPairGuide.activeBackground2"
+  }
+}
