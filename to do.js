@@ -1,126 +1,134 @@
-//
+//Js logic code for To-do list
+//TASK MANAGER object?
+function TaskManager() {
+  this.tasks = {};   //For storing all task objects using their ID
+  this.currentId = 0; // assigning a unique ID to each task
+}
+
+
+//Assigning a unique ID to each task
+TaskManager.prototype.assignId = function() {
+  this.currentId += 1; //allows ID count to increase by 1 
+  return this.currentId;
+};
+
+//adding a new task to the task manager 
+TaskManager.prototype.addTask = function(task) {
+  task.id = this.assignId();   
+  this.tasks[task.id] = task;  //for storing task in the task object 
+  console.log(`[TASK ADDED] "${task.title}" (ID: ${task.id})`);
+};
+
+//finding a task by its ID
+TaskManager.prototype.findTask = function(id) {
+  if (this.tasks[id] !== undefined) {
+    return this.tasks[id];
+  }
+  console.warn(`[WARNING] Task with ID ${id} not found.`);
+  return false; //if task dows not exist
+};
+
+// changes in task completion status
+TaskManager.prototype.toggleTask = function(id) {
+  const task = this.findTask(id); //confirms if task with that ID exists
+  if (task) {
+    task.isCompleted = !task.isCompleted;
+    console.log(`[TASK UPDATED] "${task.title}" marked as ${task.isCompleted ? "done" : "pending"}.`);
+  }
+};
+
+//Deleting a task
+TaskManager.prototype.deleteTask = function(id) {
+  if (this.tasks[id] !== undefined) {
+    delete this.tasks[id]; //for removing task from object
+    console.log(`[TASK DELETED] Task with ID ${id} removed.`);
+    return true;
+  }
+  console.warn(`[WARNING] Task with ID ${id} not found.`);
+  return false;
+};
+
+//OBject to show task details
+function Task(title, isCompleted = false) {
+  this.title = title;
+  this.isCompleted = isCompleted;
+  this.id = null;
+}
+
+
+// Method to get info about task
+Task.prototype.getInfo = function() {
+  return `${this.title} — Status: ${this.isCompleted ? "Done" : "Pending"}`;
+};
+
+//HTML elements to JS variables using IDs
 const taskInput = document.getElementById("taskInput");
 const addTaskBtn = document.getElementById("addTaskBtn");
 const taskList = document.getElementById("taskList");
-const emptyState = document.getElementById("emptyState");
-
 const totalTasks = document.getElementById("totalTasks");
 const completedTasks = document.getElementById("completedTasks");
 const pendingTasks = document.getElementById("pendingTasks");
 
-// saved tasks from local storage
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+//new TaskManager to store all of the tasks
+const myTasks = new TaskManager();
 
-// shows existing tasks after page loads (i think)
-renderTasks();
-
-// adding a task
-addTaskBtn.addEventListener("click", function () {
-  const taskText = taskInput.value.trim(); //
-
+// Adding a new task by clicking "add task" button
+addTaskBtn.addEventListener("click", function() {
+  const taskText = taskInput.value.trim();
   if (taskText === "") {
-    alert("Please enter a task before adding! :3");
+    alert("Please enter a task before adding!");
     return;
   }
 
-  //to create a new task object
-  const newTask = {
-    text: taskText,
-    completed: false,
-  };
-
-  tasks.push(newTask); // Adds to task array
-  saveTasks(); //Saves to localStorage
-  renderTasks(); // Refreshes the list
-  taskInput.value = ""; //clears the input
+  const newTask = new Task(taskText);
+  myTasks.addTask(newTask);
+  taskInput.value = "";
+  renderTasks();
 });
 
 
-// rendering tasks on the list 
+
+//Rendering tasks to appear on the screen
 function renderTasks() {
-  taskList.innerHTML = ""; // clears old list first
+  taskList.innerHTML = "";
+  const allTasks = Object.values(myTasks.tasks);
 
-  if (tasks.length === 0) {
-    emptyState.style.display = "block"; // for 'no tasks' message
-  } else {
-    emptyState.style.display = "none"; // removesempty message
-  }
-
-  // loop through tasks & create list items 
-  tasks.forEach((task, index) => {
+  allTasks.forEach((task) => {
     const li = document.createElement("li");
     li.className = "task-item";
+    if (task.isCompleted) li.classList.add("completed");
 
-    if (task.completed) {
-      li.classList.add("completed"); //when task is complete
-    }
-
-    // HTML structure for tasks
     li.innerHTML = `
-      <span class="task-text">${task.text}</span>
-      <div class="actions">
-        <button class="complete-btn">${task.completed ? "Undo" : "Done"}</button>
-        <button class="delete-btn">✖</button>
-      </div>
+      <span>${task.title}</span>
+      <button class="complete-btn">${task.isCompleted ? "Undo" : "Done"}</button>
+      <button class="delete-btn">X</button>
     `;
 
-    // complete task button
-    li.querySelector(".complete-btn").addEventListener("click", function () {
-      tasks[index].completed = !tasks[index].completed; // Toggle completion
-      saveTasks();
+    li.querySelector(".complete-btn").addEventListener("click", function() {
+      myTasks.toggleTask(task.id);
       renderTasks();
     });
 
-    //'delete task' button
-    li.querySelector(".delete-btn").addEventListener("click", function () {
-      if (confirm("Are you sure you want to delete this task?")) {
-        tasks.splice(index, 1); // Remove task
-        saveTasks();
-        renderTasks();
-      }
+    li.querySelector(".delete-btn").addEventListener("click", function() {
+      myTasks.deleteTask(task.id);
+      renderTasks();
     });
 
-    taskList.appendChild(li); //to add task to list
+    taskList.appendChild(li);
   });
 
-  updateStats(); // Update total/completed/pending items on list
+  updateStats();
 }
 
 
-// saves tasks to storage
-function saveTasks() {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-// task status update
-function updateStats() {
-  const total = tasks.length;
-  const completed = tasks.filter((task) => task.completed).length;
+//For updating total, completed, and pending task counts 
+ function updateStats() {
+  const allTasks = Object.values(myTasks.tasks);
+  const total = allTasks.length;
+  const completed = allTasks.filter(task => task.isCompleted).length;
   const pending = total - completed;
 
   totalTasks.textContent = total;
   completedTasks.textContent = completed;
   pendingTasks.textContent = pending;
 }
-
-// "CLEAR ALL" button
-const clearAllBtn = document.createElement("button");
-clearAllBtn.textContent = "Clear All Tasks";
-clearAllBtn.className = "clear-btn";
-
-// Add button below the task list
-taskList.insertAdjacentElement("afterend", clearAllBtn);
-
-// allows 'clear all' button to function
-clearAllBtn.addEventListener("click", function () {
-  if (tasks.length === 0) {
-    alert("No tasks to clear! ✨");
-    return;
-  }
-
-  if (confirm("Are you sure you want to clear ALL tasks?")) {
-    tasks = []; // Reset array
-    saveTasks(); // Update storage
-    renderTasks(); // Refresh view
-  }
-});
